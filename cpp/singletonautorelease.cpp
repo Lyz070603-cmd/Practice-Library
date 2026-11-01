@@ -115,6 +115,7 @@ int main()
     test1();
     cout << "--------------------" << endl;
     test2();
+    printf("\n");
     return 0;
 }
 
