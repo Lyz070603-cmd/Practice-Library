@@ -24,7 +24,7 @@ public:
     void notifyAll();
 private: 
     pthread_cond_t _cond;
-    Mutexlock _mutex;
+    Mutexlock &_mutex;
 };
 
 #endif //_CONDITION_H

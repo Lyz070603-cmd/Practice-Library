@@ -5,15 +5,18 @@
 
 #ifndef _TASKQUEUE_H
 #define _TASKQUEUE_H
+#include "Condition.h"
+#include <queue>
+using std::queue;
 
 class Taskqueue {
 public: 
     
-void Taskqueue();
+Taskqueue(size_t size);
     
-void ~Taskqueue();
+~Taskqueue();
     
-void push();
+void push(const int value);
     
 int pop();
     
