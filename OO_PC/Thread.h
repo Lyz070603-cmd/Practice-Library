@@ -6,23 +6,28 @@
 #ifndef _THREAD_H
 #define _THREAD_H
 
+#include <pthread.h>
+
 class Thread {
 public: 
     
-void Thread();
+Thread();
     
-void ~Thread();
+~Thread();
     
 /**
  * @param arg
  */
 static void * Function(void * arg);
     
-virtual void run() = 0;
     
 void start();
     
 void stop();
+
+private:
+
+virtual void run() = 0;
 private: 
     pthread_t _thid;
     bool isRunning;

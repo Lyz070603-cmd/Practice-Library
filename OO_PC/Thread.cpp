@@ -4,17 +4,20 @@
 
 
 #include "Thread.h"
+#include <memory.h>
 
 /**
  * Thread implementation
  */
 
 
-void Thread::Thread() {
+Thread::Thread()
+{
+   isRunning = false;
 
 }
 
-void Thread::~Thread() {
+Thread::~Thread() {
 
 }
 
@@ -22,21 +25,23 @@ void Thread::~Thread() {
  * @param arg
  * @return void *
  */
-static void * Thread::Function(void * arg) {
-    return null;
+void * Thread::Function(void * arg) {
+     Thread *ptr = (Thread*)arg;
+     if (ptr){
+        ptr->run();
+     }
+    return NULL;
 }
 
 /**
  * @return void
  */
-virtual void Thread::run() {
-    return;
-}
 
-/**
- * @return void
- */
 void Thread::start() {
+    isRunning = true;
+
+   _thid = pthread_create(&_thid,NULL,Function,this); 
+
     return;
 }
 
@@ -44,5 +49,8 @@ void Thread::start() {
  * @return void
  */
 void Thread::stop() {
+    if (isRunning){
+        pthread_join(_thid,NULL);
+    }
     return;
 }
