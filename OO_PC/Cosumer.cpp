@@ -4,6 +4,7 @@
 
 
 #include "Cosumer.h"
+#include <stdio.h>
 
 /**
  * Cosumer implementation
@@ -14,12 +15,21 @@
  * @return void
  */
 void Cosumer::run() {
+    int cnt = 20;
+    while (cnt--){
+        int value = 0;
+        value = _taskque.pop();
+        printf ("Cosumer pop %d",value);
+
+        
+    }
     return;
 }
 
 /**
  * @param _taskque
  */
-void Cosumer::Cosumer(Taskqueue & _taskque) {
+Cosumer::Cosumer(Taskqueue & taskque)
+:_taskque(taskque){
 
 }

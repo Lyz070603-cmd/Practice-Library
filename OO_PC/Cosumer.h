@@ -7,6 +7,7 @@
 #define _COSUMER_H
 
 #include "Thread.h"
+#include "Taskqueue.h"
 
 
 class Cosumer: public Thread {
@@ -17,7 +18,7 @@ void run();
 /**
  * @param _taskque
  */
-void Cosumer(Taskqueue & _taskque);
+Cosumer(Taskqueue & _taskque);
 private: 
     Taskqueue & _taskque;
 };

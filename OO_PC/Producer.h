@@ -7,6 +7,7 @@
 #define _PRODUCER_H
 
 #include "Thread.h"
+#include "Taskqueue.h"
 
 
 class Producer: public Thread {
@@ -17,7 +18,7 @@ void run();
 /**
  * @param _taskque
  */
-void Producer(Taskqueue & _taskque);
+Producer(Taskqueue & _taskque);
 private: 
     Taskqueue & _taskque;
 };
