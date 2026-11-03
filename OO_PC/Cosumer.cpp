@@ -19,7 +19,7 @@ void Cosumer::run() {
     while (cnt--){
         int value = 0;
         value = _taskque.pop();
-        printf ("Cosumer pop %d",value);
+        printf ("Cosumer pop %d\n",value);
 
         
     }

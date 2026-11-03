@@ -33,7 +33,7 @@ void Taskqueue::push(const int value) {
     //解锁
     _mutex.lock();
 
-    if(Full()){
+    while(Full()){
         _noFull.wait();
     }
     //没满
@@ -52,7 +52,7 @@ void Taskqueue::push(const int value) {
  */
 int Taskqueue::pop() {
     _mutex.lock();
-    if (Empty()){
+    while(Empty()){
         _noEmpty.wait();
 
     }

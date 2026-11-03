@@ -40,7 +40,7 @@ void * Thread::Function(void * arg) {
 void Thread::start() {
     isRunning = true;
 
-   _thid = pthread_create(&_thid,NULL,Function,this); 
+    pthread_create(&_thid,NULL,Function,this); 
 
     return;
 }
@@ -52,5 +52,6 @@ void Thread::stop() {
     if (isRunning){
         pthread_join(_thid,NULL);
     }
+    isRunning = false;
     return;
 }

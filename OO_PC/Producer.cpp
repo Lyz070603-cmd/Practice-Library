@@ -18,10 +18,10 @@
 void Producer::run() {
 
     int cnt = 20;
-    while(cnt--){
         srand(clock());
+    while(cnt--){
         int temp = rand() % 100;
-        printf (">> Producer %d",temp);
+        printf (">> Producer %d\n",temp);
         _taskque.push(temp);
     }
     return;
