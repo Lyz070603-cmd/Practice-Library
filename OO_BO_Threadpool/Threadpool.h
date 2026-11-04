@@ -26,7 +26,7 @@ private:
 private: 
     size_t _threadNum;
     size_t _queSize;
-    vector<unique_ptr<thread>> _threads;
+    vector<thread> _threads;
     Taskqueue _taskQue;
     bool _isExit;
 };

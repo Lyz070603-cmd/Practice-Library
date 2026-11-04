@@ -1,5 +1,4 @@
 #include "Threadpool.h"
-#include "WorkerThread.h"
 
 Threadpool::Threadpool(size_t threadNum, size_t queSize) 
 :_threadNum(threadNum)
@@ -25,7 +24,7 @@ void Threadpool::stop() {
         _isExit = true;
         _taskQue.wakeup(); 
         for (auto& threads_one : _threads) {
-            threads_one->join();
+            threads_one.join();
         }
         _threads.clear();
     }
