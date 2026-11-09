@@ -32,7 +32,6 @@ Socket::~Socket() {
  * @param fd &
  * @return void
  */
-void Socket::getfd(int & fd) {
-    fd = _fd;
-    return;
+int Socket::getfd() {
+    return _fd;
 }

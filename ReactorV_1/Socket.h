@@ -21,7 +21,7 @@ explicit Socket(int fd);
 /**
  * @param fd &
  */
-void getfd(int & fd );
+int getfd();
 private: 
     int _fd;
 };
