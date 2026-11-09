@@ -4,7 +4,9 @@
 
 
 #include "InetAddress.h"
-
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdlib.h>
 /**
  * InetAddress implementation
  */
@@ -14,18 +16,20 @@
  * @param ip
  * @param port
  */
-void InetAddress::InetAddress(const string ip, const string port) {
-
+InetAddress::InetAddress(const string ip, const string port) {
+    _add.sin_family = AF_INET;
+    _add.sin_port = htons(atoi(port.c_str()));
+    _add.sin_family = inet_addr(ip.c_str());
 }
 
 /**
  * @param rhs
  */
-void InetAddress::InetAddress(const InetAddress rhs) {
-
+InetAddress::InetAddress(const InetAddress & rhs) {
+    _add = rhs._add;
 }
 
-void InetAddress::~InerAddress() {
+InetAddress::~InetAddress() {
 
 }
 
@@ -33,19 +37,20 @@ void InetAddress::~InerAddress() {
  * @return struct sockaddr_in *
  */
 struct sockaddr_in * InetAddress::getaddr() {
-    return null;
+
+    return &_add;
 }
 
 /**
  * @return string
  */
 string InetAddress::Ip() {
-    return "";
+    return std::to_string(ntohs(_add.sin_port));
 }
 
 /**
  * @return string
  */
 string InetAddress::Port() {
-    return "";
+    return inet_ntoa(_add.sin_addr);
 }

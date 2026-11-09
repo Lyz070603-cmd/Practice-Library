@@ -5,6 +5,11 @@
 
 #ifndef _INETADDRESS_H
 #define _INETADDRESS_H
+#include <sys/socket.h>
+#include <string>
+#include <netinet/in.h>
+using std::string;
+
 
 class InetAddress {
 public: 
@@ -13,14 +18,14 @@ public:
  * @param ip
  * @param port
  */
-void InetAddress(const string ip, const string port);
+InetAddress(const string ip, const string port);
     
 /**
  * @param rhs
  */
-void InetAddress(const InetAddress rhs);
+InetAddress(const InetAddress &rhs);
     
-void ~InerAddress();
+~InetAddress();
     
 struct sockaddr_in * getaddr();
     
@@ -28,7 +33,7 @@ string Ip();
     
 string Port();
 private: 
-    struct sockaddr_int _add;
+    struct sockaddr_in _add;
 };
 
 #endif //_INETADDRESS_H
