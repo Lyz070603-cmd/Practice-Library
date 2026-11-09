@@ -12,9 +12,9 @@ public:
 /**
  * @param fd
  */
-void SocketIO(int fd);
+SocketIO(int fd);
     
-void ~SocketIO();
+~SocketIO();
     
 /**
  * @param buf
@@ -26,7 +26,7 @@ void read(char * buf, int len);
  * @param buf
  * @param len
  */
-void write(char * buf, int len);
+void write(const char * buf, int len);
 private: 
     int _fd;
 };

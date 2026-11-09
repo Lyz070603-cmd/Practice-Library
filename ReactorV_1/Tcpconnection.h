@@ -5,6 +5,9 @@
 
 #ifndef _TCPCONNECTION_H
 #define _TCPCONNECTION_H
+#include <string>
+#include "SocketIO.h"
+using std::string;
 
 class Tcpconnection {
 public: 
@@ -12,14 +15,14 @@ public:
 /**
  * @param fd
  */
-void Tcpconnection(int fd);
+Tcpconnection(int fd);
     
-void ~Tcpconnection();
+~Tcpconnection();
     
 /**
  * @param msg
  */
-void send(const string & msg);
+void send(string & msg);
     
 string receive();
 private: 

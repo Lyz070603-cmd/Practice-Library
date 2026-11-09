@@ -13,11 +13,12 @@
 /**
  * @param fd
  */
-void Tcpconnection::Tcpconnection(int fd) {
+Tcpconnection::Tcpconnection(int fd)
+:_sockfd(fd){
 
 }
 
-void Tcpconnection::~Tcpconnection() {
+Tcpconnection::~Tcpconnection() {
 
 }
 
@@ -25,7 +26,8 @@ void Tcpconnection::~Tcpconnection() {
  * @param msg
  * @return void
  */
-void Tcpconnection::send(const string & msg) {
+void Tcpconnection::send(string & msg) {
+    _sockfd.write(msg.c_str(),msg.size());
     return;
 }
 
@@ -33,5 +35,8 @@ void Tcpconnection::send(const string & msg) {
  * @return string
  */
 string Tcpconnection::receive() {
+    char buf[1500] = {0};
+    _sockfd.read(buf,1500);
+    printf("%s\n",buf);
     return "";
 }
