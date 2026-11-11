@@ -77,6 +77,23 @@ void EventLoop::setClosed(Tcpconnection && cd) {
  */
 void EventLoop::waitEpollFd() {
     int ret = epoll_wait(_epfd,&_eventlist,1024,3000);
+    for (int i = 0 ; i < ret ; ++i){
+        if (_eventlist[i] == _epfd){
+            //有新的链接
+            int nfd = _accept.accept();  
+
+            addEpollReadFd(nfd);
+            
+            TcpconnectionPtr tcpnet;
+
+            tcpnet->set
+            _conns[nfd,]
+
+        }
+        else{
+            //处理旧连接
+        }
+    }
 
     return;
 }
