@@ -1,16 +1,14 @@
-#ifndef _FACTORYB_H
-#define _FACTORYB_H
+#include "FactoryB.h"
 
-#include "Factory.h"
-#include "ProductB.h"
+/**
+ * FactoryB implementation
+ */
 
 
-class FactoryB
-:public Factory 
+/**
+ * @return Product *
+ */
+Product * FactoryB::createProduct()
 {
-public: 
-    Product * createProduct() override;
-};
-
-#endif //_FACTORYB_H
-
+    return new ProductB();
+}
