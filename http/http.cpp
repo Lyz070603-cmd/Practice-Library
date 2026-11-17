@@ -1,0 +1,84 @@
+#include <iostream>
+#include <string>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+
+
+
+using std::cout;
+
+using std::endl;
+using std::string;
+class HttpServer
+{
+public:
+    HttpServer(const string & ip, unsigned short port)
+        : _fd(-1)
+          , _ip(ip)
+          , _port(port){}
+    ~HttpServer() {
+        if(_fd > 0) {
+            close(_fd);
+        }
+    }
+    void start();
+    void recvAndShow();
+private:
+    int _fd;
+    string _ip;
+    unsigned short _port;
+};
+void HttpServer::start()
+{
+    _fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(_fd < 0) {
+        perror("socket");
+        return;
+    }
+    int on = 1;
+    int ret = setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    if(ret < 0) {
+        perror("setsockopt");
+        return;
+    }
+    struct sockaddr_in serveraddr;
+    memset(&serveraddr, 0, sizeof(serveraddr));
+    serveraddr.sin_family = AF_INET;
+    serveraddr.sin_addr.s_addr = inet_addr(_ip.c_str());
+    serveraddr.sin_port = htons(_port);
+    ret = bind(_fd, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+    if(ret < 0) {
+        perror("bind");
+        return;
+    }
+    ret = listen(_fd, 10);
+    if(ret < 0) {
+        perror("listen");
+        return;
+    }
+}
+void HttpServer::recvAndShow()
+{
+    while(true) {
+        int netfd = accept(_fd, nullptr, nullptr);
+        char buff[1024] = {0};
+        int ret = recv(netfd, buff, sizeof(buff), 0);
+        printf("ret: %d\nrecv: %s\n", ret, buff);
+        close(netfd);
+    }
+}
+void test0()
+{
+    //HttpServer httpserver("127.0.0.1", 1280);
+    HttpServer httpserver("0.0.0.0", 1280);
+    httpserver.start();
+    httpserver.recvAndShow();
+}
+int main()
+{
+    test0();
+    return 0;
+}
