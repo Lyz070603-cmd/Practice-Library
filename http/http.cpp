@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fcntl.h>
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -26,6 +27,20 @@ public:
     }
     void start();
     void recvAndShow();
+    void HandleRequest(int netfd) {
+        char buf[4096];
+        ssize_t sret = recv(netfd, buf, 4096, 0);
+        buf[sret] = '\0';
+        printf("Received HTTP request:\n%s\n", buf);
+        char head[] = "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html\r\n";
+        char response[8192] = {0};
+        int fd = open("login.html",O_RDONLY);
+        bzero(buf,sizeof(buf));
+        sret = read(fd,buf,sizeof(buf));
+        sprintf(response,"%sContent-Length:%ld\r\n\r\n%s",head,sret, buf);
+        send(netfd, response, strlen(response),0);
+    }
 private:
     int _fd;
     string _ip;
