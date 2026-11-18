@@ -1,16 +1,7 @@
 #include <iostream>
-#include <fcntl.h>
+#include <function.h>
 #include <string>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstring>
-
-
-
 using std::cout;
-
 using std::endl;
 using std::string;
 class HttpServer
@@ -19,7 +10,8 @@ public:
     HttpServer(const string & ip, unsigned short port)
         : _fd(-1)
           , _ip(ip)
-          , _port(port){}
+          , _port(port)
+    {}
     ~HttpServer() {
         if(_fd > 0) {
             close(_fd);
@@ -27,20 +19,6 @@ public:
     }
     void start();
     void recvAndShow();
-    void HandleRequest(int netfd) {
-        char buf[4096];
-        ssize_t sret = recv(netfd, buf, 4096, 0);
-        buf[sret] = '\0';
-        printf("Received HTTP request:\n%s\n", buf);
-        char head[] = "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html\r\n";
-        char response[8192] = {0};
-        int fd = open("login.html",O_RDONLY);
-        bzero(buf,sizeof(buf));
-        sret = read(fd,buf,sizeof(buf));
-        sprintf(response,"%sContent-Length:%ld\r\n\r\n%s",head,sret, buf);
-        send(netfd, response, strlen(response),0);
-    }
 private:
     int _fd;
     string _ip;
@@ -75,25 +53,28 @@ void HttpServer::start()
         return;
     }
 }
-void HttpServer::recvAndShow()
-{
-    while(true) {
-        int netfd = accept(_fd, nullptr, nullptr);
-        char buff[1024] = {0};
-        int ret = recv(netfd, buff, sizeof(buff), 0);
-        printf("ret: %d\nrecv: %s\n", ret, buff);
+void HttpServer::recvAndShow(){
+
+    while(true){
+        int netfd = accept(_fd,nullptr,nullptr);
+        char buf[4096] = {0};
+        int ret = recv(netfd,buf,sizeof(buf),0);
+        if (ret < 0){
+            std::cerr << "recv" << endl;
+            exit(1);
+        }
+        printf("%s",buf);
         close(netfd);
     }
 }
 void test0()
 {
-    //HttpServer httpserver("127.0.0.1", 1280);
-    HttpServer httpserver("0.0.0.0", 1280);
-    httpserver.start();
-    httpserver.recvAndShow();
+//HttpServer httpserver("127.0.0.1", 1280);
+HttpServer httpserver("172.25.134.48", 1280);
+httpserver.start();
+httpserver.recvAndShow();
 }
-int main()
-{
+int main(){
     test0();
     return 0;
 }
