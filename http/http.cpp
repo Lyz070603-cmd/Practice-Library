@@ -53,6 +53,7 @@ void HttpServer::start()
         return;
     }
 }
+void HandleRequest(int netfd);
 void HttpServer::recvAndShow(){
 
     while(true){
@@ -64,15 +65,32 @@ void HttpServer::recvAndShow(){
             exit(1);
         }
         printf("%s",buf);
+        HandleRequest(netfd);
         close(netfd);
     }
 }
+
+
+void HandleRequest(int netfd) {
+    char buf[4096];
+    ssize_t sret;
+    char head[] = "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n";
+    char response[8192] = {0};
+    int fd = open("login.html",O_RDONLY);
+    bzero(buf,sizeof(buf));
+    sret = read(fd,buf,sizeof(buf));
+    sprintf(response,"%sContent-Length:%ld\r\n\r\n%s",head,sret, buf);
+    send(netfd, response, strlen(response),0);
+}
+
+
 void test0()
 {
-//HttpServer httpserver("127.0.0.1", 1280);
-HttpServer httpserver("172.25.134.48", 1280);
-httpserver.start();
-httpserver.recvAndShow();
+    //HttpServer httpserver("127.0.0.1", 1280);
+    HttpServer httpserver("172.25.134.48", 1280);
+    httpserver.start();
+    httpserver.recvAndShow();
 }
 int main(){
     test0();
