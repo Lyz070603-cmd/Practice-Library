@@ -32,6 +32,7 @@ void httpcallback(WFHttpTask * httptask){
     ctx->size = size;
     
     printf("%s : size : %ld\n",ctx->name.c_str(),ctx->size);
+    write(STDOUT_FILENO,body,size);
 
 
 }
@@ -41,8 +42,8 @@ int main (){
 
     vector<string> vec{
         "http://www.qq.com",
-        "http://www.baidu.com",
-        "http://www.taobao.com"
+        "http://www.ba.com",
+        "http://127.0.0.1:1234/"
     };
     for (int i = 0 ; i < 3 ;++i){
         WFHttpTask *httptask = WFTaskFactory::create_http_task(vec[i],
