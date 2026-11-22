@@ -19,7 +19,7 @@ void sighandler(int signo){
 }
 
 void process(WFHttpTask *task){
-   task->get_resp()->append_output_body("Hello form sever!"); 
+   task->get_resp()->append_output_body("Hello form sever!\n"); 
 }
 int main (){
     signal(SIGINT,sighandler);

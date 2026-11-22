@@ -42,7 +42,7 @@ int main (){
 
     vector<string> vec{
         "http://www.qq.com",
-        "http://www.ba.com",
+        "http://www.baidu.com",
         "http://127.0.0.1:1234/"
     };
     for (int i = 0 ; i < 3 ;++i){
