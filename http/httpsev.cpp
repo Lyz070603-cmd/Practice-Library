@@ -24,8 +24,14 @@ void process(WFHttpTask *task){
 int main (){
     signal(SIGINT,sighandler);
     WFHttpServer sever(process);
-    sever.start(1234);
+    if (sever.start(1234) == 0){
+        wait_group.wait();
+        sever.stop();
+    }
+    else {
+        perror("sever start error!\n");
+        exit(-1);
+    }
 
-    wait_group.wait();
-    sever.stop();
+    return 0;
 }
