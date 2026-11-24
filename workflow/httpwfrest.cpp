@@ -36,13 +36,16 @@ void login_in_handler(const HttpReq *req, HttpResp *resp) {
 
     // 3. 简单校验：写死一个账号密码
     if (username == "admin" && password == "123456") {
-        // 正确 → 返回登录后页面
-        resp->File("hello.html");
+        resp->set_status(HttpStatusFound);        // 302
+        resp->add_header_pair("Location", "/home");
     } else {
         // 错误 → 返回提示页
         resp->add_header_pair("Content-Type", "text/html; charset=utf-8");
         resp->String("<!DOCTYPE html><h2>用户名或密码错误</h2><a href='/login'>返回重新登录</a>");
     }
+}
+void home_handler(const HttpReq *req, HttpResp *resp) {
+    resp->File("hello.html");
 }
 int main (){
     HttpServer server;
@@ -50,10 +53,12 @@ int main (){
                     std::placeholders::_1,std::placeholders::_2);
     Handler login_in = std::bind(login_in_handler,
                     std::placeholders::_1,std::placeholders::_2);
-
+    Handler home = std::bind(home_handler,
+                    std::placeholders::_1,std::placeholders::_2);
 
     server.GET("/login",login);
     server.POST("/login",login_in);
+    server.GET("/home",home);
     if (server.start(1234) == 0){
         server.list_routes();
         wait_group.wait();
