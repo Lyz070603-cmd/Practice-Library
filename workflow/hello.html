@@ -1,2 +1,244 @@
 <!DOCTYPE html>
-<html>hello</html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作台 · Nebula Drive</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 800px at 80% -10%,#1a1440 0%,transparent 60%),
+      radial-gradient(1000px 700px at -10% 100%,#06263a 0%,transparent 55%),
+      #070a13;
+    color:#eaeefb;
+  }
+  .orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.4;pointer-events:none;z-index:-1}
+  .orb1{width:420px;height:420px;background:#4a3bff;top:-120px;right:-80px}
+  .orb2{width:360px;height:360px;background:#a03bff;bottom:-140px;left:-60px}
+
+  .glass{
+    background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;
+    backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+
+  /* 导航栏 */
+  .nav{
+    max-width:1240px;margin:14px auto 0;padding:0 22px;height:60px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .logo-mark{
+    width:30px;height:30px;border-radius:9px;display:flex;align-items:center;
+    justify-content:center;font-size:15px;color:#fff;
+    background:linear-gradient(120deg,#6a8dff,#b06bff);
+    box-shadow:0 4px 16px rgba(106,141,255,.45);
+  }
+  .nav-user{
+    font-size:13px;color:#8a93ab;padding:6px 12px;border-radius:999px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  }
+
+  /* 主布局 */
+  .layout{
+    max-width:1240px;margin:26px auto 60px;padding:0 22px;
+    display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start;
+  }
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+  /* 个人信息卡 */
+  .profile{padding:30px 24px 24px;text-align:center;position:sticky;top:20px}
+  .avatar-ring{
+    width:92px;height:92px;margin:0 auto 16px;border-radius:50%;padding:3px;
+    background:linear-gradient(120deg,#6a8dff,#b06bff);
+  }
+  .avatar{
+    width:100%;height:100%;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:34px;font-weight:700;text-transform:uppercase;
+    color:#fff;background:#12172b;box-shadow:inset 0 0 24px rgba(106,141,255,.25);
+  }
+  .pname{font-size:19px;font-weight:600}
+  .prole{font-size:12px;color:#8a93ab;margin:6px 0 22px;letter-spacing:1.5px;text-transform:uppercase}
+
+  .meta{text-align:left;border-top:1px solid rgba(255,255,255,.1);padding-top:6px}
+  .meta-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0}
+  .meta-item+.meta-item{border-top:1px solid rgba(255,255,255,.05)}
+  .meta-label{font-size:12px;color:#8a93ab}
+  .meta-value{font-size:13px;font-weight:500;color:#eaeefb}
+
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+  .stat{
+    padding:14px 8px;border-radius:12px;background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:4px;
+  }
+  .stat-num{
+    font-size:16px;font-weight:700;
+    background:linear-gradient(120deg,#9fb4ff,#d9b6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .stat-label{font-size:11px;color:#8a93ab;letter-spacing:.5px}
+
+  /* 右列 */
+  .main{display:flex;flex-direction:column;gap:22px}
+  .card{padding:24px}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .card-head h2{font-size:15px;font-weight:600;letter-spacing:.4px}
+  .hint{font-size:12px;color:#8a93ab}
+
+  /* 上传区 */
+  .upload{
+    padding:40px 20px;text-align:center;border-radius:14px;
+    border:1.5px dashed rgba(255,255,255,.18);
+    background:radial-gradient(400px 180px at 50% 0%,rgba(106,141,255,.09),transparent 70%);
+  }
+  .upload .icon{
+    width:66px;height:66px;margin:0 auto 16px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:28px;color:#6a8dff;
+    background:rgba(106,141,255,.1);border:1px solid rgba(106,141,255,.25);
+  }
+  .upload-title{font-size:15px;font-weight:500;margin-bottom:6px}
+  .upload-sub{font-size:12.5px;color:#8a93ab;margin-bottom:16px}
+
+  /* 原生上传表单 */
+  .upload-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .upload-form input[type=file]{
+    font-size:12.5px;color:#8a93ab;padding:8px 12px;border-radius:10px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+    max-width:240px;
+  }
+  .upload-form input[type=file]::file-selector-button{
+    font-family:inherit;font-size:12.5px;color:#a9b9ff;cursor:pointer;
+    background:rgba(106,141,255,.13);border:1px solid rgba(106,141,255,.28);
+    border-radius:8px;padding:6px 12px;margin-right:10px;
+  }
+  .btn-up{
+    padding:9px 20px;border:none;border-radius:10px;cursor:pointer;
+    font-size:13px;font-weight:600;font-family:inherit;color:#fff;
+    background:linear-gradient(120deg,#6a8dff,#b06bff);
+    box-shadow:0 8px 22px rgba(106,141,255,.3);transition:all .25s;
+  }
+  .btn-up:hover{box-shadow:0 12px 30px rgba(176,107,255,.45);transform:translateY(-1px)}
+
+  /* 文件列表 */
+  .files{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .files li{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 14px;border-radius:12px;
+    background:rgba(255,255,255,.028);border:1px solid transparent;
+    transition:all .25s;
+  }
+  .files li:hover{background:rgba(106,141,255,.08);border-color:rgba(106,141,255,.28);transform:translateX(3px)}
+  .file-info{display:flex;align-items:center;gap:12px;min-width:0}
+  .file-emoji{
+    width:36px;height:36px;flex-shrink:0;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  }
+  .file-name{font-size:13.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .file-size{font-size:11.5px;color:#8a93ab}
+  .btn-dl{
+    padding:7px 14px;font-size:12.5px;border-radius:9px;text-decoration:none;
+    color:#a9b9ff;background:rgba(106,141,255,.13);border:1px solid rgba(106,141,255,.28);
+    transition:all .2s;white-space:nowrap;
+  }
+  .btn-dl:hover{background:rgba(106,141,255,.24);color:#fff;box-shadow:0 4px 16px rgba(106,141,255,.25)}
+</style>
+</head>
+<body>
+  <span class="orb orb1"></span>
+  <span class="orb orb2"></span>
+
+  <nav class="nav glass">
+    <div class="logo"><span class="logo-mark">◈</span> Nebula Drive</div>
+    <span class="nav-user">👤 alice</span>
+  </nav>
+
+  <div class="layout">
+    <!-- 左：个人信息 -->
+    <aside class="glass profile">
+      <div class="avatar-ring"><div class="avatar">A</div></div>
+      <div class="pname">alice</div>
+      <div class="prole">Member</div>
+
+      <div class="meta">
+        <div class="meta-item">
+          <span class="meta-label">用户名</span>
+          <span class="meta-value">alice</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">注册时间</span>
+          <span class="meta-value">2024-11-24 10:00:00</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span class="stat-num">3</span><span class="stat-label">文件数</span></div>
+        <div class="stat"><span class="stat-num">2.4 MB</span><span class="stat-label">占用</span></div>
+      </div>
+    </aside>
+
+    <!-- 右：文件管理 -->
+    <main class="main">
+      <section class="glass card">
+        <div class="card-head">
+          <h2>上传文件</h2>
+          <span class="hint">选择文件后点击上传</span>
+        </div>
+        <div class="upload">
+          <div class="icon">☁️</div>
+          <p class="upload-title">选择一个文件上传</p>
+          <p class="upload-sub">文件将被安全存储在你的空间</p>
+
+          <!-- 原生 multipart 表单 -->
+          <form class="upload-form" action="/api/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit" class="btn-up">上传</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="glass card">
+        <div class="card-head"><h2>我的文件</h2></div>
+        <ul class="files">
+          <li>
+            <div class="file-info">
+              <span class="file-emoji">🖼️</span>
+              <div>
+                <span class="file-name">photo.png</span>
+                <span class="file-size">1.8 MB</span>
+              </div>
+            </div>
+            <a class="btn-dl" href="/api/download?file=photo.png" download>下载</a>
+          </li>
+          <li>
+            <div class="file-info">
+              <span class="file-emoji">📄</span>
+              <div>
+                <span class="file-name">report.pdf</span>
+                <span class="file-size">420 KB</span>
+              </div>
+            </div>
+            <a class="btn-dl" href="/api/download?file=report.pdf" download>下载</a>
+          </li>
+          <li>
+            <div class="file-info">
+              <span class="file-emoji">🗜️</span>
+              <div>
+                <span class="file-name">backup.zip</span>
+                <span class="file-size">200 KB</span>
+              </div>
+            </div>
+            <a class="btn-dl" href="/api/download?file=backup.zip" download>下载</a>
+          </li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
