@@ -1,48 +1,40 @@
-#include <workflow/WFHttpServer.h>
 #include <workflow/WFFacilities.h>
+#include <workflow/WFHttpServer.h>
 #include <workflow/HttpUtil.h>
 #include <nlohmann/json.hpp>
-#include <iostream>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>   // write, close, fsync 等函数需要
+#include <stdlib.h>
 #include <signal.h>
-#include <string>
 
 using Json = nlohmann::json;
-
-using std::cout;
-using std::endl;
-using std::string;
-
-// http://192.168.118.128:1234/file/mupload/init
-// http://192.168.118.128:1234/file/mupload/uppart?uploadID=liao1122&chkidx=2
-// http://192.168.118.128:1234/file/mupload/complete?uploadID=liao1122
-
-static WFFacilities::WaitGroup wait_group(1);
-void sighandler(int signo){
-    wait_group.done();
-    cout << "sever stop" << endl;
-    return ;
+static WFFacilities::WaitGroup waitGroup(1);
+void sighandler(int signum){
+    printf("finish 1 work!\n");
+    waitGroup.done();
 }
-
-void process(WFHttpTask *task){
-    auto resp = task->get_resp();
-    auto req  = task->get_req();
-    
-    string uri = req->get_request_uri();
-    string method = req->get_method();
-    string path= uri.substr(0,uri.find("?"));
-    string query= uri.substr(uri.find("?")+1);
-    
-    if (path == "/file/mupload/init" && method == "POST"){
-        const void * body;
+void process(WFHttpTask *serverTask){
+    // http://192.168.118.128:1234/file/mupload/init
+    // http://192.168.118.128:1234/file/mupload/uppart?uploadID=liao1122&chkidx=2
+    // http://192.168.118.128:1234/file/mupload/complete?uploadID=liao1122
+    auto req = serverTask->get_req();
+    auto resp = serverTask->get_resp();
+    std::string uri = req->get_request_uri();
+    std::string path = uri.substr(0,uri.find("?"));
+    std::string query = uri.substr(uri.find("?")+1);
+    std::string method = req->get_method();
+    if(path == "/file/mupload/init" && method == "POST"){
+        // 1 解析请求报文
+        const void *body;
         size_t size;
         req->get_parsed_body(&body,&size);
-        cout << " succes" << "\n";
-
+        // 2 从字符串解析成json
         Json fileInfo = Json::parse(static_cast<const char *>(body));
-         std::string filename = fileInfo["filename"];
+        std::string filename = fileInfo["filename"];
         int filesize = fileInfo["filesize"];
         std::string filehash = fileInfo["filehash"];
-        //fprintf(stderr,"%s %s %d\n", filename.c_str(), filehash.c_str(), filesize);
+        fprintf(stderr,"%s %s %d\n", filename.c_str(), filehash.c_str(), filesize);
         // 3 初始化分块操作
         // 生成uploadID
         std::string uploadID = "liao";
@@ -85,24 +77,86 @@ void process(WFHttpTask *task){
         uppartInfo["chunksize"] = chunksize;
         uppartInfo["filehash"] = filehash;
         resp->append_output_body(uppartInfo.dump());
+    }
+    else if(path == "/file/mupload/uppart" && method == "POST"){
+        //fprintf(stderr,"uppart\n");
+        // 解析uri的查询参数，提取出uploadID和chkidx
+        // query = "uploadID=liao101335&chkidx=2"
+        std::string uploadIDKV = query.substr(0,query.find("&"));
+        std::string uploadID = uploadIDKV.substr(uploadIDKV.find("=")+1);
+        std::string chkidxKV = query.substr(query.find("&")+1);
+        std::string chkidx = chkidxKV.substr(chkidxKV.find("=")+1);
+        // 保存单个分片 ./filehash/1 filehash需要从redis当中获取 HGET uploadID filehash
+        auto redisTaskHGET = WFTaskFactory::create_redis_task("redis://localhost",0,[chkidx,req](WFRedisTask *redisTaskHGET){
+            protocol::RedisValue value;
+            redisTaskHGET->get_resp()->get_result(value);
+            std::string filehash = value.string_value();
+            mkdir(filehash.c_str(),0777);
+            std::string filepath = filehash + "/" + chkidx;
+            // 文件IO任务
+            int fd = open(filepath.c_str(),O_RDWR|O_CREAT,0666);
+            const void *body;
+            size_t size;
+            req->get_parsed_body(&body,&size);
+            write(fd,body,size);
+            close(fd);
+        });
+        redisTaskHGET->get_req()->set_request("HGET",{uploadID,"filehash"});
+        series_of(serverTask)->push_back(redisTaskHGET);
+        // 记录下载进度 HSET uploadID chkidx 1
+        auto redisTaskHSET = WFTaskFactory::create_redis_task("redis://localhost",0,nullptr);
+        redisTaskHSET->get_req()->set_request("HSET",{uploadID,"chkidx_"+chkidx,"1"});
+        series_of(serverTask)->push_back(redisTaskHSET);
 
-
+        // 设置响应的内容
+        resp->append_output_body("OK");
+    }
+    else if(path == "/file/mupload/complete" && method == "POST"){
+        //fprintf(stderr,"complete\n");
+        //解析请求，提取出uploadID
+        std::string uploadID = query.substr(query.find("=")+1);
+        //查询上传进度
+        // HGETALL uploadID
+        // chunkcount键所对应的值-->下载的总进度
+        // 前缀为chkidx_的键的数量-->下载的当前进度
+        auto redisTask = WFTaskFactory::create_redis_task("redis://localhost",0,[resp](WFRedisTask *redisTask){
+            protocol::RedisValue value;
+            redisTask->get_resp()->get_result(value);
+            int chunkcount;
+            int chunknow = 0;
+            for(int i = 0; i < value.arr_size(); i+=2){
+                std::string key = value.arr_at(i).string_value();
+                std::string val = value.arr_at(i+1).string_value();
+                if(key == "chunkcount"){
+                    chunkcount = std::stoi(val);
+                }
+                else if(key.substr(0,7) == "chkidx_"){
+                    ++chunknow;
+                }
+            }
+            //fprintf(stderr,"chunkcount = %d, chunknow = %d\n", chunkcount, chunknow);
+            if(chunkcount == chunknow){
+                //分块合并操作
+                resp->append_output_body("SUCCESS");
+            }
+            else{
+                resp->append_output_body("FAIL");
+            }
+        });
+        redisTask->get_req()->set_request("HGETALL",{uploadID});
+        series_of(serverTask)->push_back(redisTask);
     }
 }
-
-
-
-int main (){
+int main(){
     signal(SIGINT,sighandler);
-    WFHttpServer sever(process);
-    if (sever.start(1234) == 0){
-        wait_group.wait();
-        sever.stop();
+    WFHttpServer server(process);
+    if(server.start(1234) == 0){
+        waitGroup.wait();
+        server.stop();
     }
-    else {
-        perror("sever start error!\n");
+    else{
+        perror("server start error!\n");
         exit(-1);
     }
-
     return 0;
 }
