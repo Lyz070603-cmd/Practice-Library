@@ -1,7 +1,7 @@
 // auth.h
 #pragma once
 #include <string>
-#include <wfrest/HttpReq.h>
+#include <wfrest/HttpMsg.h>
 
 class Auth {
 public:

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>CloudBox · 我的文件</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI","PingFang SC",sans-serif;
+       min-height:100vh;padding:40px 24px;color:#eaeefb;
+       background:radial-gradient(1200px 800px at 80% -10%,#1a1440,transparent 60%),#070a13}
+  h2{margin-bottom:16px;font-size:20px}
+  .bar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+  select,input,button{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+                     background:rgba(255,255,255,.05);color:#eaeefb;font-family:inherit}
+  button{cursor:pointer;background:linear-gradient(120deg,#6a8dff,#b06bff);border:none;font-weight:600}
+  button:hover{opacity:.9}
+  table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.03);border-radius:10px;overflow:hidden}
+  th,td{padding:10px 14px;text-align:left;font-size:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+  th{background:rgba(255,255,255,.06);font-weight:600}
+  .del{color:#ff6a6a;cursor:pointer}
+  .del:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+  <h2>我的文件</h2>
+  <div class="bar">
+    <input type="file" id="file">
+    <button onclick="upload()">上传</button>
+    <select id="cat" onchange="load()">
+      <option value="all">全部</option>
+      <option value="image">图片</option>
+      <option value="doc">文档</option>
+      <option value="video">视频</option>
+      <option value="audio">音频</option>
+      <option value="other">其它</option>
+    </select>
+    <button onclick="logout()" style="background:#444">退出</button>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>文件名</th><th>分类</th><th>大小</th><th>操作</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+<script>
+const token = localStorage.getItem('token');
+if (!token) location.href = '/login';
+const H = { 'Authorization': 'Bearer ' + token };
+const fmt = n => n<1024?n+'B':n<1048576?(n/1024).toFixed(1)+'KB':(n/1048576).toFixed(1)+'MB';
+
+async function load() {
+  const cat = document.getElementById('cat').value;
+  const res = await fetch('/api/list?category=' + cat, { headers: H });
+  if (res.status === 401) return logout();
+  const rows = await res.json();
+  const tb = document.getElementById('tb');
+  tb.innerHTML = rows.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:#888">暂无文件</td></tr>'
+    : rows.map(r => `
+        <tr>
+          <td>${r[0]}</td>
+          <td>${r[1]}</td>
+          <td>${r[2]}</td>
+          <td>${fmt(r[3])}</td>
+          <td>
+            <a href="/api/download/${r[0]}" style="color:#6a8dff;margin-right:12px">下载</a>
+            <span class="del" onclick="del(${r[0]})">删除</span>
+          </td>
+        </tr>`).join('');
+}
+
+async function upload() {
+  const f = document.getElementById('file').files[0];
+  if (!f) return alert('请选择文件');
+  const fd = new FormData(); fd.append('file', f);
+  const res = await fetch('/api/upload', { method:'POST', headers: H, body: fd });
+  const r = await res.json();
+  alert(r.msg === 'exists' ? '秒传成功！' : '上传成功');
+  load();
+}
+
+async function del(id) {
+  if (!confirm('确认删除？')) return;
+  await fetch('/api/file/' + id, { method:'DELETE', headers: H });
+  load();
+}
+
+function logout() { localStorage.removeItem('token'); location.href = '/login'; }
+
+load();
+</script>
+</body>
+</html>

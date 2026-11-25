@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · CloudBox</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(1200px 800px at 80% -10%,#1a1440 0%,transparent 60%),
+      radial-gradient(1000px 700px at -10% 100%,#06263a 0%,transparent 55%),#070a13;
+    color:#eaeefb;overflow:hidden}
+  .orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.45;pointer-events:none}
+  .orb1{width:420px;height:420px;background:#4a3bff;top:-120px;right:-80px}
+  .orb2{width:360px;height:360px;background:#a03bff;bottom:-140px;left:-60px}
+  .card{position:relative;width:100%;max-width:420px;padding:44px 38px 38px;
+    background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;overflow:hidden;backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(120deg,#6a8dff,#b06bff,#26e0c0);
+    background-size:200% 100%;animation:sh 4s linear infinite}
+  @keyframes sh{to{background-position:200% 0}}
+  .brand{text-align:center;margin-bottom:34px}
+  .mark{width:56px;height:56px;margin:0 auto 16px;border-radius:16px;
+    display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;
+    background:linear-gradient(120deg,#6a8dff,#b06bff);
+    box-shadow:0 8px 26px rgba(106,141,255,.45)}
+  h1{font-size:24px;font-weight:700;
+    background:linear-gradient(120deg,#fff,#a9b6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{font-size:13px;color:#8a93ab;margin-top:8px}
+  .field{position:relative;margin-bottom:22px}
+  .field input{width:100%;padding:20px 16px 8px;border-radius:12px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+    color:#eaeefb;font-size:15px;font-family:inherit;
+    transition:border-color .25s,box-shadow .25s,background .25s}
+  .field input:focus{outline:none;border-color:rgba(106,141,255,.75);
+    background:rgba(106,141,255,.06);
+    box-shadow:0 0 0 4px rgba(106,141,255,.13)}
+  .field label{position:absolute;left:16px;top:15px;font-size:14px;color:#8a93ab;
+    pointer-events:none;transition:all .2s}
+  .field input:focus+label,.field input:not(:placeholder-shown)+label{
+    top:6px;font-size:11px;color:#6a8dff;letter-spacing:.4px}
+  button{width:100%;padding:14px;border:none;border-radius:12px;cursor:pointer;
+    font-size:15px;font-weight:600;font-family:inherit;letter-spacing:.5px;color:#fff;
+    background:linear-gradient(120deg,#6a8dff,#b06bff);background-size:180% 180%;
+    box-shadow:0 10px 30px rgba(106,141,255,.35);transition:all .3s}
+  button:hover{background-position:100% 0;box-shadow:0 14px 40px rgba(176,107,255,.5);transform:translateY(-1px)}
+  button:active{transform:translateY(1px) scale(.99)}
+</style>
+</head>
+<body>
+  <span class="orb orb1"></span>
+  <span class="orb orb2"></span>
+  <div class="card">
+    <div class="brand">
+      <div class="mark">◈</div>
+      <h1>CloudBox</h1>
+      <p class="sub">安全 · 极速 · 云端文件管理</p>
+    </div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field">
+        <input type="text" id="u" placeholder=" " required>
+        <label for="u">用户名</label>
+      </div>
+      <div class="field">
+        <input type="password" id="p" placeholder=" " required>
+        <label for="p">密码</label>
+      </div>
+      <button type="submit">进入空间 →</button>
+    </form>
+  </div>
+<script>
+async function doLogin(e) {
+  e.preventDefault();
+  const fd = new URLSearchParams();
+  fd.append('username', document.getElementById('u').value);
+  fd.append('password', document.getElementById('p').value);
+  const res = await fetch('/api/login', { method:'POST', body: fd });
+  if (res.status !== 200) { location.href='/error'; return false; }
+  const r = await res.json();
+  if (!r.token) { location.href='/error'; return false; }
+  localStorage.setItem('token', r.token);
+  location.href = '/home';
+  return false;
+}
+</script>
+</body>
+</html>

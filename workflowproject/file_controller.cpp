@@ -111,8 +111,17 @@ void FileController::list(const HttpReq* req, HttpResp* resp) {
 
     resp->Redis(Db::redisUrl(), "GET", {cacheKey},
         [=](const Json* r) {
-            if (r->contains("result") && (*r)["result"].is_string()) {
-                sendJson(resp, (*r)["result"].get<std::string>());
+         bool hit = false;
+            std::string cached;
+            if (r->is_object()) {
+                const Json& v = (*r)["result"];
+                if (!v.is_null() && v.is_string()) {
+                    hit    = true;
+                    cached = v.get<std::string>();
+                }
+            }
+            if (hit) {
+                sendJson(resp, cached);
                 return;
             }
             std::string sql =
