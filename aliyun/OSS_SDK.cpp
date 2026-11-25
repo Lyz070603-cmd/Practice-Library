@@ -73,6 +73,15 @@ int main()
         return -1;
     }
 
+
+    time_t t = std::time(nullptr) + 1200;
+
+    auto genOutcome = client.GeneratePresignedUrl(ossInfo.OSSbucket,"dir/text.txt",t,Http::Get);
+    if (genOutcome.isSuccess()){
+        cout << genOutcome.result().c_str() << endl;
+    }
+
+
     /* 释放网络等资源。*/
     ShutdownSdk();
 
