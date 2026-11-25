@@ -32,6 +32,11 @@ void login_in_handler(const HttpReq *req, HttpResp *resp) {
     std::string username = body["username"];
     std::string password = body["password"];
 
+    map <string,string> qur = req->query_list();
+    for (auto &it : qur){
+        cout << it.first << it.second << endl;
+    }
+
     std::cout << "登录尝试: " << username << " / " << password << std::endl;
 
     // 3. 简单校验：写死一个账号密码

@@ -25,6 +25,7 @@ desktop.ini
 !.env.example
 *.pem
 *.key
+*.txt
 secrets/
 secret/
 
