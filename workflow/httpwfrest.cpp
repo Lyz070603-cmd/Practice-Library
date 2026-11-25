@@ -45,8 +45,7 @@ void login_in_handler(const HttpReq *req, HttpResp *resp) {
         resp->add_header_pair("Location", "/home");
     } else {
         // 错误 → 返回提示页
-        resp->add_header_pair("Content-Type", "text/html; charset=utf-8");
-        resp->String("<!DOCTYPE html><h2>用户名或密码错误</h2><a href='/login'>返回重新登录</a>");
+        resp->File("./error.html");
     }
 }
 void home_handler(const HttpReq *req, HttpResp *resp) {
